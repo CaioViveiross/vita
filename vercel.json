@@ -3,26 +3,19 @@
   "framework": "vite",
 
   "rewrites": [
-    {
-      "comment": "O roteamento é do navegador (BrowserRouter), não do servidor. Sem esta regra, abrir /movimentacoes direto — ou apenas recarregar a página — pede ao servidor um arquivo que não existe e devolve 404. A Vercel só chega aqui depois de não achar um arquivo estático, então /assets/* continua sendo servido normalmente.",
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
 
   "headers": [
     {
-      "comment": "Os nomes em /assets carregam o hash do conteúdo: mudou o arquivo, mudou o nome. Por isso podem ser guardados para sempre — nunca haverá versão nova no mesmo endereço.",
       "source": "/assets/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     },
     {
-      "comment": "O index.html é o oposto: mesmo endereço, conteúdo novo a cada deploy. Guardá-lo serviria a versão antiga apontando para assets que já não existem.",
       "source": "/index.html",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     },
     {
-      "comment": "Um sistema financeiro não tem por que aparecer dentro de um iframe alheio, e o navegador não deve adivinhar o tipo de nenhuma resposta nossa.",
       "source": "/(.*)",
       "headers": [
         { "key": "X-Frame-Options", "value": "DENY" },

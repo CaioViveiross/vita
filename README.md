@@ -127,6 +127,51 @@ necessário como referência para gerar novos recortes.
   de o Radix conferir, escapando a dispensa por uma corrida de variável.
 - **Cancelados** são preservados no histórico e excluídos de todos os totais.
 
+## Deploy (Vercel)
+
+A configuração está em `vercel.json`. Ela não aceita comentários — o schema da
+Vercel rejeita qualquer chave que não conheça, `comment` inclusive — então o
+porquê de cada linha fica aqui.
+
+**`rewrites`** — o roteamento é do navegador (`BrowserRouter`), não do
+servidor. Sem a regra que manda tudo para `index.html`, abrir `/movimentacoes`
+direto, ou apenas recarregar a página, pede ao servidor um arquivo que não
+existe e devolve 404. São 8 rotas nessa condição. A Vercel só aplica o rewrite
+depois de não encontrar um arquivo estático, então `/assets/*` continua sendo
+servido normalmente.
+
+**`headers`** — cache separado por natureza do arquivo. Os nomes em `/assets`
+carregam o hash do conteúdo (mudou o arquivo, mudou o nome), então podem ser
+guardados para sempre: nunca haverá versão nova no mesmo endereço. O
+`index.html` é o oposto — endereço fixo, conteúdo novo a cada deploy —, e
+guardá-lo serviria uma versão antiga apontando para assets que já não existem.
+Os três cabeçalhos de segurança fecham iframe e adivinhação de MIME.
+
+### Antes do primeiro deploy
+
+**1. Variáveis de ambiente na Vercel.** O `.env.local` é ignorado pelo git e
+não sobe — corretamente. Mas o Vite injeta as variáveis **no momento do
+build**, então elas precisam existir na Vercel *antes* de buildar; sem isso o
+site sobe e para na mensagem "Supabase não configurado".
+
+```bash
+vercel env add VITE_SUPABASE_URL production
+vercel env add VITE_SUPABASE_ANON_KEY production
+```
+
+Repita trocando `production` por `preview` para que os deploys de branch
+também funcionem.
+
+**2. URLs de redirecionamento no Supabase.** O link de confirmação de e-mail
+aponta para o `Site URL` do projeto. Enquanto ele for `localhost`, quem criar
+conta pelo site publicado receberá um e-mail que redireciona para o próprio
+computador.
+
+Painel → Authentication → URL Configuration:
+- `Site URL`: o domínio da Vercel
+- `Redirect URLs`: `https://<projeto>.vercel.app/**`, mantendo
+  `http://localhost:5173/**` para seguir desenvolvendo
+
 ## Como a integração está montada
 
 Quatro camadas, de baixo para cima. Cada uma só conhece a de baixo:
