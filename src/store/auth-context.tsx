@@ -51,6 +51,8 @@ interface AuthContextValue {
   createOrganization: (name: string) => Promise<OrganizationRow>;
   /** Atualiza nome, cargo e iniciais do próprio perfil. */
   updateProfile: (patch: { name?: string; role?: string; initials?: string }) => Promise<void>;
+  /** Troca a senha da sessão atual. */
+  updatePassword: (password: string) => Promise<void>;
   /** Recarrega perfil e associações — após aceitar convite, por exemplo. */
   refresh: () => Promise<void>;
 }
@@ -234,6 +236,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [session],
   );
 
+  const updatePassword = useCallback<AuthContextValue["updatePassword"]>(async (password) => {
+    /* O Supabase exige sessão ativa para isto — é a troca de quem já entrou,
+       não a recuperação de quem esqueceu, que passa por e-mail. */
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw new Error(describeError(error));
+  }, []);
+
   const refresh = useCallback(async () => {
     if (session?.user) await loadUserData(session.user.id);
   }, [session, loadUserData]);
@@ -258,11 +267,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       createOrganization,
       updateProfile,
+      updatePassword,
       refresh,
     }),
     [
       ready, session, profile, memberships, activeOrgId, activeMembership,
-      setActiveOrg, signIn, signUp, signOut, createOrganization, updateProfile, refresh,
+      setActiveOrg, signIn, signUp, signOut, createOrganization, updateProfile, updatePassword, refresh,
     ],
   );
 
