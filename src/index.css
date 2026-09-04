@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 160 24% 98%;
+    --foreground: 168 22% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 168 22% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 168 22% 11%;
+
+    --primary: 162 74% 32%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 160 60% 95%;
+    --primary-deep: 167 60% 17%;
+
+    --secondary: 160 16% 96%;
+    --secondary-foreground: 168 20% 20%;
+
+    --muted: 160 16% 96%;
+    --muted-foreground: 170 8% 46%;
+
+    --accent: 160 30% 95%;
+    --accent-foreground: 167 45% 22%;
+
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 155 62% 36%;
+    --success-soft: 152 55% 95%;
+    --danger: 0 72% 51%;
+    --danger-soft: 0 80% 97%;
+    --warning: 36 92% 45%;
+    --warning-soft: 42 96% 95%;
+    --info: 214 84% 52%;
+    --info-soft: 213 90% 96%;
+
+    --border: 165 14% 91%;
+    --input: 165 14% 90%;
+    --ring: 162 74% 32%;
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 170 20% 7%;
+    --foreground: 160 20% 96%;
+
+    --card: 170 16% 10%;
+    --card-foreground: 160 20% 96%;
+
+    --popover: 170 16% 10%;
+    --popover-foreground: 160 20% 96%;
+
+    --primary: 162 65% 40%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 162 35% 15%;
+    --primary-deep: 150 55% 82%;
+
+    --secondary: 170 12% 14%;
+    --secondary-foreground: 160 12% 90%;
+
+    --muted: 170 12% 14%;
+    --muted-foreground: 170 8% 62%;
+
+    --accent: 170 14% 16%;
+    --accent-foreground: 150 30% 85%;
+
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 155 50% 48%;
+    --success-soft: 155 30% 15%;
+    --danger: 0 68% 60%;
+    --danger-soft: 0 40% 16%;
+    --warning: 36 80% 58%;
+    --warning-soft: 40 40% 15%;
+    --info: 214 75% 62%;
+    --info-soft: 214 40% 16%;
+
+    --border: 170 12% 18%;
+    --input: 170 12% 20%;
+    --ring: 162 65% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    /* Reserva o espaço da barra de rolagem permanentemente — sem isso, toda
+       vez que um Select/Dialog trava o scroll do body (escondendo a barra),
+       a página ganha ~15px e todo o conteúdo pula para o lado. */
+    scrollbar-gutter: stable;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+  }
+  /**
+   * Ao abrir um Select/Dialog, o `react-remove-scroll` (dentro do Radix)
+   * trava o scroll do body e injeta `margin-right: <largura da barra>` para
+   * compensar a barra que sumiria. Com o `scrollbar-gutter: stable` acima o
+   * espaço nunca é devolvido — então essa compensação vira dupla e é ela que
+   * empurra a página para o lado. A regra da lib usa `!important`; por isso
+   * aqui vai `html body[...]`, com especificidade maior, e não só `body`.
+   */
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+  }
+  ::selection {
+    @apply bg-primary/15;
+  }
+  /**
+   * Quem pediu menos movimento no sistema recebe as mudanças de estado na
+   * hora, sem transição. Não vale desligar tudo com `animation: none`: isso
+   * quebraria componentes que só ficam visíveis ao fim da animação de entrada.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .surface {
+    @apply rounded-2xl border border-border/70 bg-card shadow-soft;
+  }
+  /**
+   * A marca "V" entra como recorte (só o alfa do PNG), e a cor vem do
+   * `currentColor` de quem a usa. Um arquivo só atende tema claro e escuro,
+   * sem precisar de uma variante de cor para cada fundo.
+   */
+  .brand-mark {
+    background-color: currentColor;
+    -webkit-mask: url("/brand/vita-mark.png") center / contain no-repeat;
+    mask: url("/brand/vita-mark.png") center / contain no-repeat;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  /**
+   * Itens do menu lateral. Duas velocidades no mesmo elemento, o que não dá
+   * para expressar em utilitários do Tailwind: o que responde ao recolher
+   * (padding/gap) acompanha a largura da sidebar em 300ms, enquanto a cor do
+   * hover continua rápida — senão passar o mouse fica com atraso perceptível.
+   */
+  .nav-motion {
+    transition-property: padding, gap, background-color, color;
+    transition-duration: 300ms, 300ms, 160ms, 160ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /**
+   * Legenda dos itens (e o nome do produto).
+   *
+   * Só a opacidade anima: a largura fica fixa e quem esconde o texto é o
+   * `overflow-hidden` da sidebar. Animar `width` aqui custa caro — eram 9
+   * legendas forçando layout a cada quadro, junto com a própria sidebar;
+   * medindo o recolher/expandir, tirar isso levou a mediana de 39ms para
+   * 28ms por quadro e cortou os quadros longos pela metade.
+   *
+   * O fade é assimétrico de propósito: some rápido ao recolher — antes de o
+   * espaço acabar — e entra atrasado ao expandir, quando já há lugar para o
+   * texto. Sem isso o texto aparece espremido no meio do caminho.
+   */
+  .nav-label {
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 120ms;
+  }
+  .nav-label[data-collapsed="false"] {
+    transition-duration: 180ms;
+    transition-delay: 140ms;
+  }
+  .focus-ring {
+    @apply outline-none ring-offset-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-ring/60;
+  }
+}
+
+/* Scrollbars — discreet */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: hsl(165 12% 86%);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(165 10% 78%);
+}
+
+/* Native date/time inputs */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.9;
+}

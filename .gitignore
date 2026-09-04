@@ -1,0 +1,20 @@
+# Dependências
+node_modules
+
+# Build
+dist
+dist/
+.vite
+*.tsbuildinfo
+
+# Ambiente — NUNCA versionar chaves.
+# `*.local` cobre `.env.local`; as linhas seguintes fecham as demais variantes,
+# porque um `.env` criado no futuro passaria batido pelo padrão acima.
+*.local
+.env
+.env.*
+!.env.example
+
+# Sistema
+.DS_Store
+Thumbs.db
